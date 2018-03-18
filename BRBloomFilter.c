@@ -31,6 +31,12 @@
 #include <math.h>
 #include <assert.h>
 
+#ifdef _WIN32
+#ifndef M_LN2
+# define M_LN2          0.69314718055994530942  /* log_e 2 */
+#endif // !M_LN2
+#endif // _WIN32
+
 #define BLOOM_MAX_HASH_FUNCS 50
 
 inline static uint32_t _BRBloomFilterHash(const BRBloomFilter *filter, const uint8_t *data, size_t dataLen,
