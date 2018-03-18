@@ -23,6 +23,9 @@
 //  THE SOFTWARE.
 
 #include "BRPeer.h"
+
+#ifndef _WIN32
+
 #include "BRMerkleBlock.h"
 #include "BRAddress.h"
 #include "BRSet.h"
@@ -1538,3 +1541,5 @@ void BRPeerAcceptMessageTest(BRPeer *peer, const uint8_t *msg, size_t msgLen, co
 {
     _BRPeerAcceptMessage(peer, msg, msgLen, type);
 }
+
+#endif // !_WIN32

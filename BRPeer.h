@@ -25,6 +25,15 @@
 #ifndef BRPeer_h
 #define BRPeer_h
 
+/*
+由于 Peer 和 PeerManager 是与网络互通部分，使用的 sys/socket.h 等各种组件在 Windows 上不可用。
+出于以下两点考虑，客户端去除 Peer/PeerManager 的支持。
+
+- Peer/PeerManager 是最外层的组件，没有其它组件依赖它们
+- 目前的架构是客户端只需要签名，广播是服务器做（客户端无需与网络直接互通）
+*/
+#ifndef _WIN32
+          
 #include "BRTransaction.h"
 #include "BRMerkleBlock.h"
 #include "BRAddress.h"
@@ -215,5 +224,7 @@ void BRPeerFree(BRPeer *peer);
 #ifdef __cplusplus
 }
 #endif
+
+#endif // !_WIN32
 
 #endif // BRPeer_h

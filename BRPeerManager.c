@@ -23,6 +23,9 @@
 //  THE SOFTWARE.
 
 #include "BRPeerManager.h"
+
+#ifndef _WIN32
+
 #include "BRBloomFilter.h"
 #include "BRSet.h"
 #include "BRArray.h"
@@ -1929,3 +1932,5 @@ void BRPeerManagerFree(BRPeerManager *manager)
     pthread_mutex_destroy(&manager->lock);
     free(manager);
 }
+
+#endif // !_WIN32
