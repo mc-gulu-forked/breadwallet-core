@@ -32,7 +32,13 @@
 #include <float.h>
 
 #ifdef _WIN32
-#define _TIMESPEC_DEFINED
+#
+#   define _TIMESPEC_DEFINED
+#
+#   ifdef __clang__   // CLang 在 Windows 上 __declspec 不是宏而是 compiler directives，会触发 pthread.h 内的 #error 
+#       undef __GNUC__
+#   endif // __clang__
+#
 #endif // _WIN32
 
 #include <pthread.h>
