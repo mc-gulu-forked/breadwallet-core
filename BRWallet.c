@@ -30,6 +30,11 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <float.h>
+
+#ifdef _WIN32
+#define _TIMESPEC_DEFINED
+#endif // _WIN32
+
 #include <pthread.h>
 #include <assert.h>
 

@@ -28,6 +28,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef _WIN32
+#define _TIMESPEC_DEFINED
+#endif // _WIN32
+
 #include <pthread.h>
 
 #define BITCOIN_PRIVKEY      128
