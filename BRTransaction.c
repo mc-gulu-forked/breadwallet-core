@@ -30,7 +30,10 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif // _WIN32
 
 #define TX_VERSION           0x00000001
 #define TX_LOCKTIME          0x00000000
