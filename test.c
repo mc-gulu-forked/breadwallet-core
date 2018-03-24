@@ -47,8 +47,14 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <time.h>
+
+#ifdef _WIN32
+#pragma comment (lib, "pthreadVC2")
+#pragma comment (lib, "bitcell-sdk")
+#else
 #include <unistd.h>
 #include <arpa/inet.h>
+#endif // _WIN32
 
 #define SKIP_BIP38 1
 
@@ -2609,6 +2615,7 @@ int BRPaymentProtocolEncryptionTests()
     return r;
 }
 
+#ifndef _WIN32
 void BRPeerAcceptMessageTest(BRPeer *peer, const uint8_t *msg, size_t len, const char *type);
 
 int BRPeerTests()
@@ -2616,10 +2623,11 @@ int BRPeerTests()
     int r = 1;
     BRPeer *p = BRPeerNew(BR_CHAIN_PARAMS.magicNumber);
     const char msg[] = "my message";
-    
+
     BRPeerAcceptMessageTest(p, (const uint8_t *)msg, sizeof(msg) - 1, "inv");
     return r;
 }
+#endif // !_WIN32
 
 int BRRunTests()
 {
