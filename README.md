@@ -1,4 +1,7 @@
-# breadwallet-core
-SPV bitcoin C library
+# (a fork of) breadwallet-core
 
-[getting started](https://github.com/breadwallet/breadwallet-core/wiki)
+- [original repository](https://github.com/breadwallet/breadwallet-core)
+    + SPV bitcoin C library
+    + [getting started](https://github.com/breadwallet/breadwallet-core/wiki)
+
+
