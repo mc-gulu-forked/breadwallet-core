@@ -48,10 +48,20 @@ uint32_t BRRand(uint32_t upperBound)
 {
     static int first = 1;
     uint32_t r;
-    
+
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#endif
+
     // seed = (((FNV_OFFSET xor time)*FNV_PRIME) xor pid)*FNV_PRIME
     if (first) srand((((0x811C9dc5 ^ (unsigned)time(NULL))*0x01000193) ^ (unsigned)getpid())*0x01000193);
     first = 0;
+
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic pop
+#endif
+
     if (upperBound == 0 || upperBound > BR_RAND_MAX) upperBound = BR_RAND_MAX;
     
     do { // to avoid modulo bias, find a rand value not less than 0x100000000 % upperBound
