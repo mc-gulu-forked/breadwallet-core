@@ -72,6 +72,10 @@
 #define BR_CHAIN_PARAMS BRMainNetParams
 #endif
 
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
+
 int BRIntsTests()
 {
     // test endianess

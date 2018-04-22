@@ -27,6 +27,10 @@
 #include <string.h>
 #include <assert.h>
 
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
+
 // endian swapping
 #if __BIG_ENDIAN__ || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define be32(x) (x)

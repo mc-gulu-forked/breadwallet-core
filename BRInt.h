@@ -159,6 +159,11 @@ inline static UInt256 UInt256Reverse(UInt256 u)
 
 // unaligned memory access helpers
 
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
+
 union _u16 { uint8_t u8[16/8]; };
 union _u32 { uint8_t u8[32/8]; };
 union _u64 { uint8_t u8[64/8]; };
@@ -298,6 +303,10 @@ inline static UInt256 UInt256Get(const void *b32)
         ((const uint8_t *)b32)[28], ((const uint8_t *)b32)[29], ((const uint8_t *)b32)[30], ((const uint8_t *)b32)[31]
     } };
 }
+
+#if BITCELL_SDK && (defined(__clang__) || defined(__GNUC__))
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 }
