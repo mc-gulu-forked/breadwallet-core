@@ -164,52 +164,59 @@ inline static UInt256 UInt256Reverse(UInt256 u)
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 #endif
 
+union _u16 { uint8_t u8[16/8]; };
+union _u32 { uint8_t u8[32/8]; };
+union _u64 { uint8_t u8[64/8]; };
+union _u128 { uint8_t u8[128/8]; };
+union _u160 { uint8_t u8[160/8]; };
+union _u256 { uint8_t u8[256/8]; };
+
 inline static void UInt16SetBE(void *b2, uint16_t u)
 {
-    *(union _u16 { uint8_t u8[16/8]; } *)b2 = (union _u16) { (u >> 8) & 0xff, u & 0xff };
+    *(union _u16 *)b2 = (union _u16) { (u >> 8) & 0xff, u & 0xff };
 }
 
 inline static void UInt16SetLE(void *b2, uint16_t u)
 {
-    *(union _u16 { uint8_t u8[16/8]; } *)b2 = (union _u16) { u & 0xff, (u >> 8) & 0xff };
+    *(union _u16 *)b2 = (union _u16) { u & 0xff, (u >> 8) & 0xff };
 }
 
 inline static void UInt32SetBE(void *b4, uint32_t u)
 {
-    *(union _u32 { uint8_t u8[32/8]; } *)b4 =
+    *(union _u32 *)b4 =
         (union _u32) { (u >> 24) & 0xff, (u >> 16) & 0xff, (u >> 8) & 0xff, u & 0xff };
 }
 
 inline static void UInt32SetLE(void *b4, uint32_t u)
 {
-    *(union _u32 { uint8_t u8[32/8]; } *)b4 =
+    *(union _u32 *)b4 =
         (union _u32) { u & 0xff, (u >> 8) & 0xff, (u >> 16) & 0xff, (u >> 24) & 0xff };
 }
 
 inline static void UInt64SetBE(void *b8, uint64_t u)
 {
-    *(union _u64 { uint8_t u8[64/8]; } *)b8 =
+    *(union _u64 *)b8 =
         (union _u64) { (u >> 56) & 0xff, (u >> 48) & 0xff, (u >> 40) & 0xff, (u >> 32) & 0xff,
                        (u >> 24) & 0xff, (u >> 16) & 0xff, (u >> 8) & 0xff, u & 0xff };
 }
 
 inline static void UInt64SetLE(void *b8, uint64_t u)
 {
-    *(union _u64 { uint8_t u8[64/8]; } *)b8 =
+    *(union _u64 *)b8 =
         (union _u64) { u & 0xff, (u >> 8) & 0xff, (u >> 16) & 0xff, (u >> 24) & 0xff,
                        (u >> 32) & 0xff, (u >> 40) & 0xff, (u >> 48) & 0xff, (u >> 56) & 0xff };
 }
 
 inline static void UInt128Set(void *b16, UInt128 u)
 {
-    *(union _u128 { uint8_t u8[128/8]; } *)b16 =
+    *(union _u128 *)b16 =
         (union _u128) { u.u8[0], u.u8[1], u.u8[2],  u.u8[3],  u.u8[4],  u.u8[5],  u.u8[6],  u.u8[7],
                         u.u8[8], u.u8[9], u.u8[10], u.u8[11], u.u8[12], u.u8[13], u.u8[14], u.u8[15] };
 }
 
 inline static void UInt160Set(void *b20, UInt160 u)
 {
-    *(union _u160 { uint8_t u8[160/8]; } *)b20 =
+    *(union _u160 *)b20 =
         (union _u160) { u.u8[0],  u.u8[1],  u.u8[2],  u.u8[3],  u.u8[4],  u.u8[5],  u.u8[6],  u.u8[7],
                         u.u8[8],  u.u8[9],  u.u8[10], u.u8[11], u.u8[12], u.u8[13], u.u8[14], u.u8[15],
                         u.u8[16], u.u8[17], u.u8[18], u.u8[19] };
@@ -217,7 +224,7 @@ inline static void UInt160Set(void *b20, UInt160 u)
 
 inline static void UInt256Set(void *b32, UInt256 u)
 {
-    *(union _u256 { uint8_t u8[256/8]; } *)b32 =
+    *(union _u256 *)b32 =
         (union _u256) { u.u8[0],  u.u8[1],  u.u8[2],  u.u8[3],  u.u8[4],  u.u8[5],  u.u8[6],  u.u8[7],
                         u.u8[8],  u.u8[9],  u.u8[10], u.u8[11], u.u8[12], u.u8[13], u.u8[14], u.u8[15],
                         u.u8[16], u.u8[17], u.u8[18], u.u8[19], u.u8[20], u.u8[21], u.u8[22], u.u8[23],
