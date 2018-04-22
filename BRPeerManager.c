@@ -22,9 +22,11 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-#include "BRPeerManager.h"
 
-#ifndef _WIN32
+// temporarily disable PeerManager, which requires quite a lot of works for cross-compiling
+#if !BITCELL_SDK 
+
+#include "BRPeerManager.h"
 
 #include "BRBloomFilter.h"
 #include "BRSet.h"
@@ -1933,4 +1935,4 @@ void BRPeerManagerFree(BRPeerManager *manager)
     free(manager);
 }
 
-#endif // !_WIN32
+#endif // !BITCELL_SDK
