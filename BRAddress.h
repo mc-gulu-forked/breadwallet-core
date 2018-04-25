@@ -34,10 +34,6 @@
 extern "C" {
 #endif
 
-#if BITCOIN_TESTNET
-#pragma message "testnet build"
-#endif
-
 // bitcoin address prefixes
 #define BITCOIN_PUBKEY_ADDRESS      0
 #define BITCOIN_SCRIPT_ADDRESS      5
@@ -88,11 +84,11 @@ typedef struct {
 
 // writes the bitcoin address for a scriptPubKey to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRAddressFromScriptPubKey(char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
+size_t BRAddressFromScriptPubKey(int netType, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
 
 // writes the bitcoin address for a scriptSig to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRAddressFromScriptSig(char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
+size_t BRAddressFromScriptSig(int netType, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
 
 // writes the bitcoin address for a witness to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
@@ -100,10 +96,10 @@ size_t BRAddressFromWitness(char *addr, size_t addrLen, const uint8_t *witness, 
 
 // writes the scriptPubKey for addr to script
 // returns the number of bytes written, or scriptLen needed if script is NULL
-size_t BRAddressScriptPubKey(uint8_t *script, size_t scriptLen, const char *addr);
+size_t BRAddressScriptPubKey(int netType, uint8_t *script, size_t scriptLen, const char *addr);
 
 // returns true if addr is a valid bitcoin address
-int BRAddressIsValid(const char *addr);
+int BRAddressIsValid(int netType, const char *addr);
 
 // writes the 20 byte hash160 of addr to md20 and returns true on success
 int BRAddressHash160(void *md20, const char *addr);

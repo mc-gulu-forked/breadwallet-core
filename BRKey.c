@@ -33,7 +33,7 @@
 #
 #   define _TIMESPEC_DEFINED
 #
-#   ifdef __clang__   // CLang 在 Windows 上 __declspec 不是宏而是 compiler directives，会触发 pthread.h 内的 #error 
+#   ifdef __clang__   // CLang 在 Windows 上 __declspec 不是宏而是 compiler directives，会触发 pthread.h 内的 #error
 #       undef __GNUC__
 #   endif // __clang__
 #
@@ -99,7 +99,7 @@ int BRSecp256k1PointGen(BRECPoint *p, const UInt256 *i)
 {
     secp256k1_pubkey pubkey;
     size_t pLen = sizeof(*p);
-    
+
     pthread_once(&_ctx_once, _ctx_init);
     return (secp256k1_ec_pubkey_create(_ctx, &pubkey, (const unsigned char *)i) &&
             secp256k1_ec_pubkey_serialize(_ctx, (unsigned char *)p, &pLen, &pubkey, SECP256K1_EC_COMPRESSED));
@@ -111,7 +111,7 @@ int BRSecp256k1PointAdd(BRECPoint *p, const UInt256 *i)
 {
     secp256k1_pubkey pubkey;
     size_t pLen = sizeof(*p);
-    
+
     pthread_once(&_ctx_once, _ctx_init);
     return (secp256k1_ec_pubkey_parse(_ctx, &pubkey, (const unsigned char *)p, sizeof(*p)) &&
             secp256k1_ec_pubkey_tweak_add(_ctx, &pubkey, (const unsigned char *)i) &&
@@ -124,7 +124,7 @@ int BRSecp256k1PointMul(BRECPoint *p, const UInt256 *i)
 {
     secp256k1_pubkey pubkey;
     size_t pLen = sizeof(*p);
-    
+
     pthread_once(&_ctx_once, _ctx_init);
     return (secp256k1_ec_pubkey_parse(_ctx, &pubkey, (const unsigned char *)p, sizeof(*p)) &&
             secp256k1_ec_pubkey_tweak_mul(_ctx, &pubkey, (const unsigned char *)i) &&
@@ -133,27 +133,27 @@ int BRSecp256k1PointMul(BRECPoint *p, const UInt256 *i)
 
 // returns true if privKey is a valid private key
 // supported formats are wallet import format (WIF), mini private key format, or hex string
-int BRPrivKeyIsValid(const char *privKey)
+int BRPrivKeyIsValid(int netType, const char *privKey)
 {
     uint8_t data[34];
     size_t dataLen, strLen;
     int r = 0;
-    
+
     assert(privKey != NULL);
 
     dataLen = BRBase58CheckDecode(data, sizeof(data), privKey);
     strLen = strlen(privKey);
-    
+
     if (dataLen == 33 || dataLen == 34) { // wallet import format: https://en.bitcoin.it/wiki/Wallet_import_format
-#if BITCOIN_TESTNET
-        r = (data[0] == BITCOIN_PRIVKEY_TEST);
-#else
-        r = (data[0] == BITCOIN_PRIVKEY);
-#endif
+        if (netType == BTC_MainNet) {
+            r = (data[0] == BITCOIN_PRIVKEY);
+        } else if (netType == BTC_TestNet) {
+            r = (data[0] == BITCOIN_PRIVKEY_TEST);
+        }
     }
     else if ((strLen == 30 || strLen == 22) && privKey[0] == 'S') { // mini private key format
         char s[strLen + 2];
-        
+
         strncpy(s, privKey, sizeof(s));
         s[sizeof(s) - 2] = '?';
         BRSHA256(data, s, sizeof(s) - 1);
@@ -161,7 +161,7 @@ int BRPrivKeyIsValid(const char *privKey)
         r = (data[0] == 0);
     }
     else r = (strspn(privKey, "0123456789ABCDEFabcdef") == 64); // hex encoded key
-    
+
     mem_clean(data, sizeof(data));
     return r;
 }
@@ -171,7 +171,7 @@ int BRKeySetSecret(BRKey *key, const UInt256 *secret, int compressed)
 {
     assert(key != NULL);
     assert(secret != NULL);
-    
+
     pthread_once(&_ctx_once, _ctx_init);
     BRKeyClean(key);
     key->secret = UInt256Get(secret);
@@ -181,22 +181,23 @@ int BRKeySetSecret(BRKey *key, const UInt256 *secret, int compressed)
 
 // assigns privKey to key and returns true on success
 // privKey must be wallet import format (WIF), mini private key format, or hex string
-int BRKeySetPrivKey(BRKey *key, const char *privKey)
+int BRKeySetPrivKey(int netType, BRKey *key, const char *privKey)
 {
     size_t len = strlen(privKey);
-    uint8_t data[34], version = BITCOIN_PRIVKEY;
+    uint8_t data[34], version;
     int r = 0;
-    
-#if BITCOIN_TESTNET
-    version = BITCOIN_PRIVKEY_TEST;
-#endif
 
+    if (netType == BTC_MainNet) {
+        version = BITCOIN_PRIVKEY;
+    } else if (netType == BTC_TestNet) {
+        version = BITCOIN_PRIVKEY_TEST;
+    }
     assert(key != NULL);
     assert(privKey != NULL);
-    
+
     // mini private key format
     if ((len == 30 || len == 22) && privKey[0] == 'S') {
-        if (! BRPrivKeyIsValid(privKey)) return 0;
+        if (! BRPrivKeyIsValid(netType, privKey)) return 0;
         BRSHA256(data, privKey, strlen(privKey));
         r = BRKeySetSecret(key, (UInt256 *)data, 0);
     }
@@ -226,11 +227,11 @@ int BRKeySetPrivKey(BRKey *key, const char *privKey)
 int BRKeySetPubKey(BRKey *key, const uint8_t *pubKey, size_t pkLen)
 {
     secp256k1_pubkey pk;
-    
+
     assert(key != NULL);
     assert(pubKey != NULL);
     assert(pkLen == 33 || pkLen == 65);
-    
+
     pthread_once(&_ctx_once, _ctx_init);
     BRKeyClean(key);
     memcpy(key->pubKey, pubKey, pkLen);
@@ -240,25 +241,26 @@ int BRKeySetPubKey(BRKey *key, const uint8_t *pubKey, size_t pkLen)
 
 // writes the WIF private key to privKey and returns the number of bytes writen, or pkLen needed if privKey is NULL
 // returns 0 on failure
-size_t BRKeyPrivKey(const BRKey *key, char *privKey, size_t pkLen)
+size_t BRKeyPrivKey(int netType, const BRKey *key, char *privKey, size_t pkLen)
 {
     uint8_t data[34];
 
     assert(key != NULL);
-    
+
     if (secp256k1_ec_seckey_verify(_ctx, key->secret.u8)) {
-        data[0] = BITCOIN_PRIVKEY;
-#if BITCOIN_TESTNET
-        data[0] = BITCOIN_PRIVKEY_TEST;
-#endif
-        
+
+        if (netType == BTC_MainNet) {
+            data[0] = BITCOIN_PRIVKEY;
+        } else if (netType == BTC_TestNet) {
+            data[0] = BITCOIN_PRIVKEY_TEST;
+        }
         UInt256Set(&data[1], key->secret);
         if (key->compressed) data[33] = 0x01;
         pkLen = BRBase58CheckEncode(privKey, pkLen, data, (key->compressed) ? 34 : 33);
         mem_clean(data, sizeof(data));
     }
     else pkLen = 0;
-    
+
     return pkLen;
 }
 
@@ -270,7 +272,7 @@ size_t BRKeyPubKey(BRKey *key, void *pubKey, size_t pkLen)
     secp256k1_pubkey pk;
 
     assert(key != NULL);
-    
+
     if (memcmp(key->pubKey, empty, size) == 0) {
         if (secp256k1_ec_pubkey_create(_ctx, &pk, key->secret.u8)) {
             secp256k1_ec_pubkey_serialize(_ctx, key->pubKey, &size, &pk,
@@ -289,7 +291,7 @@ UInt160 BRKeyHash160(BRKey *key)
     UInt160 hash = UINT160_ZERO;
     size_t len;
     secp256k1_pubkey pk;
-    
+
     assert(key != NULL);
     len = BRKeyPubKey(key, NULL, 0);
     if (len > 0 && secp256k1_ec_pubkey_parse(_ctx, &pk, key->pubKey, len)) BRHash160(&hash, key->pubKey, len);
@@ -298,25 +300,26 @@ UInt160 BRKeyHash160(BRKey *key)
 
 // writes the pay-to-pubkey-hash bitcoin address for key to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen)
+size_t BRKeyAddress(int netType, BRKey *key, char *addr, size_t addrLen)
 {
     UInt160 hash;
     uint8_t data[21];
 
     assert(key != NULL);
-    
+
     hash = BRKeyHash160(key);
-    data[0] = BITCOIN_PUBKEY_ADDRESS;
-#if BITCOIN_TESTNET
-    data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
-#endif
+    if (netType == BTC_MainNet) {
+        data[0] = BITCOIN_PUBKEY_ADDRESS;
+    } else if (netType == BTC_TestNet) {
+        data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
+    }
     UInt160Set(&data[1], hash);
 
     if (! UInt160IsZero(hash)) {
         addrLen = BRBase58CheckEncode(addr, addrLen, data, sizeof(data));
     }
     else addrLen = 0;
-    
+
     return addrLen;
 }
 
@@ -326,14 +329,14 @@ size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen)
 size_t BRKeySign(const BRKey *key, void *sig, size_t sigLen, UInt256 md)
 {
     secp256k1_ecdsa_signature s;
-    
+
     assert(key != NULL);
-    
+
     if (secp256k1_ecdsa_sign(_ctx, &s, md.u8, key->secret.u8, secp256k1_nonce_function_rfc6979, NULL)) {
         if (! secp256k1_ecdsa_signature_serialize_der(_ctx, sig, &sigLen, &s)) sigLen = 0;
     }
     else sigLen = 0;
-    
+
     return sigLen;
 }
 
@@ -344,18 +347,18 @@ int BRKeyVerify(BRKey *key, UInt256 md, const void *sig, size_t sigLen)
     secp256k1_ecdsa_signature s;
     size_t len;
     int r = 0;
-    
+
     assert(key != NULL);
     assert(sig != NULL || sigLen == 0);
     assert(sigLen > 0);
-    
+
     len = BRKeyPubKey(key, NULL, 0);
-    
+
     if (len > 0 && secp256k1_ec_pubkey_parse(_ctx, &pk, key->pubKey, len) &&
         secp256k1_ecdsa_signature_parse_der(_ctx, &s, sig, sigLen)) {
         if (secp256k1_ecdsa_verify(_ctx, &s, md.u8, &pk) == 1) r = 1; // success is 1, all other values are fail
     }
-    
+
     return r;
 }
 
@@ -386,7 +389,7 @@ size_t BRKeyCompactSign(const BRKey *key, void *compactSig, size_t sigLen, UInt2
         }
         else if (! compactSig) r = 65;
     }
-    
+
     return r;
 }
 
@@ -398,15 +401,15 @@ int BRKeyRecoverPubKey(BRKey *key, UInt256 md, const void *compactSig, size_t si
     size_t len = sizeof(pubKey);
     secp256k1_ecdsa_recoverable_signature s;
     secp256k1_pubkey pk;
-    
+
     assert(key != NULL);
     assert(compactSig != NULL);
     assert(sigLen == 65);
-    
+
     if (sigLen == 65) {
         if (((uint8_t *)compactSig)[0] - 27 >= 4) compressed = 1;
         recid = (((uint8_t *)compactSig)[0] - 27) % 4;
-        
+
         if (secp256k1_ecdsa_recoverable_signature_parse_compact(_ctx, &s, (const uint8_t *)compactSig + 1, recid) &&
             secp256k1_ecdsa_recover(_ctx, &pk, &s, md.u8) &&
             secp256k1_ec_pubkey_serialize(_ctx, pubKey, &len, &pk,

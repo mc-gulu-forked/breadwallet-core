@@ -31,6 +31,9 @@
 extern "C" {
 #endif
 
+#define BTC_MainNet 0
+#define BTC_TestNet 1
+
 // large integers
 
 typedef union {

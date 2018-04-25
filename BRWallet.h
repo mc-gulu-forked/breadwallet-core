@@ -59,7 +59,7 @@ inline static int BRUTXOEq(const void *utxo, const void *otherUtxo)
 typedef struct BRWalletStruct BRWallet;
 
 // allocates and populates a BRWallet struct that must be freed by calling BRWalletFree()
-BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk);
+BRWallet *BRWalletNew(int netType, BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk);
 
 // not thread-safe, set callbacks once after BRWalletNew(), before calling other BRWallet functions
 // info is a void pointer that will be passed along with each callback call
@@ -81,10 +81,10 @@ void BRWalletSetCallbacks(BRWallet *wallet, void *info,
 // the internal chain is used for change addresses and the external chain for receive addresses
 // addrs may be NULL to only generate addresses for BRWalletContainsAddress()
 // returns the number addresses written to addrs
-size_t BRWalletUnusedAddrs(BRWallet *wallet, BRAddress addrs[], uint32_t gapLimit, int internal);
+size_t BRWalletUnusedAddrs(int netType, BRWallet *wallet, BRAddress addrs[], uint32_t gapLimit, int internal);
 
 // returns the first unused external address
-BRAddress BRWalletReceiveAddress(BRWallet *wallet);
+BRAddress BRWalletReceiveAddress(int netType, BRWallet *wallet);
 
 // writes all addresses previously genereated with BRWalletUnusedAddrs() to addrs
 // returns the number addresses written, or total number available if addrs is NULL
@@ -123,23 +123,23 @@ void BRWalletSetFeePerKb(BRWallet *wallet, uint64_t feePerKb);
 
 // returns an unsigned transaction that sends the specified amount from the wallet to the given address
 // result must be freed using BRTransactionFree()
-BRTransaction *BRWalletCreateTransaction(BRWallet *wallet, uint64_t amount, const char *addr);
+BRTransaction *BRWalletCreateTransaction(int netType, BRWallet *wallet, uint64_t amount, const char *addr);
 
 // returns an unsigned transaction that satisifes the given transaction outputs
 // result must be freed using BRTransactionFree()
-BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput outputs[], size_t outCount);
+BRTransaction *BRWalletCreateTxForOutputs(int netType, BRWallet *wallet, const BRTxOutput outputs[], size_t outCount);
 
 // signs any inputs in tx that can be signed using private keys from the wallet
 // forkId is 0 for bitcoin, 0x40 for b-cash
 // seed is the master private key (wallet seed) corresponding to the master public key given when the wallet was created
 // returns true if all inputs were signed, or false if there was an error or not all inputs were able to be signed
-int BRWalletSignTransaction(BRWallet *wallet, BRTransaction *tx, int forkId, const void *seed, size_t seedLen);
+int BRWalletSignTransaction(int netType, BRWallet *wallet, BRTransaction *tx, int forkId, const void *seed, size_t seedLen);
 
 // true if the given transaction is associated with the wallet (even if it hasn't been registered)
 int BRWalletContainsTransaction(BRWallet *wallet, const BRTransaction *tx);
 
 // adds a transaction to the wallet, or returns false if it isn't associated with the wallet
-int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx);
+int BRWalletRegisterTransaction(int netType, BRWallet *wallet, BRTransaction *tx);
 
 // removes a tx from the wallet, along with any tx that depend on its outputs
 void BRWalletRemoveTransaction(BRWallet *wallet, UInt256 txHash);
@@ -160,7 +160,7 @@ int BRWalletTransactionIsVerified(BRWallet *wallet, const BRTransaction *tx);
 // use height TX_UNCONFIRMED and timestamp 0 to indicate a tx should remain marked as unverified (not 0-conf safe)
 void BRWalletUpdateTransactions(BRWallet *wallet, const UInt256 txHashes[], size_t txCount, uint32_t blockHeight,
                                 uint32_t timestamp);
-    
+
 // marks all transactions confirmed after blockHeight as unconfirmed (useful for chain re-orgs)
 void BRWalletSetTxUnconfirmedAfter(BRWallet *wallet, uint32_t blockHeight);
 
@@ -180,7 +180,7 @@ uint64_t BRWalletBalanceAfterTx(BRWallet *wallet, const BRTransaction *tx);
 uint64_t BRWalletFeeForTxSize(BRWallet *wallet, size_t size);
 
 // fee that will be added for a transaction of the given amount
-uint64_t BRWalletFeeForTxAmount(BRWallet *wallet, uint64_t amount);
+uint64_t BRWalletFeeForTxAmount(int netType, BRWallet *wallet, uint64_t amount);
 
 // outputs below this amount are uneconomical due to fees (TX_MIN_OUTPUT_AMOUNT is the absolute minimum output amount)
 uint64_t BRWalletMinOutputAmount(BRWallet *wallet);
