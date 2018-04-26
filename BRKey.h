@@ -59,7 +59,7 @@ int BRSecp256k1PointMul(BRECPoint *p, const UInt256 *i);
 
 // returns true if privKey is a valid private key
 // supported formats are wallet import format (WIF), mini private key format, or hex string
-int BRPrivKeyIsValid(const char *privKey);
+int BRPrivKeyIsValid(int netType, const char *privKey);
 
 typedef struct {
     UInt256 secret;
@@ -72,14 +72,14 @@ int BRKeySetSecret(BRKey *key, const UInt256 *secret, int compressed);
 
 // assigns privKey to key and returns true on success
 // privKey must be wallet import format (WIF), mini private key format, or hex string
-int BRKeySetPrivKey(BRKey *key, const char *privKey);
+int BRKeySetPrivKey(int netType, BRKey *key, const char *privKey);
 
 // assigns DER encoded pubKey to key and returns true on success
 int BRKeySetPubKey(BRKey *key, const uint8_t *pubKey, size_t pkLen);
 
 // writes the WIF private key to privKey and returns the number of bytes writen, or pkLen needed if privKey is NULL
 // returns 0 on failure
-size_t BRKeyPrivKey(const BRKey *key, char *privKey, size_t pkLen);
+size_t BRKeyPrivKey(int netType, const BRKey *key, char *privKey, size_t pkLen);
 
 // writes the DER encoded public key to pubKey and returns number of bytes written, or pkLen needed if pubKey is NULL
 size_t BRKeyPubKey(BRKey *key, void *pubKey, size_t pkLen);
@@ -89,7 +89,7 @@ UInt160 BRKeyHash160(BRKey *key);
 
 // writes the pay-to-pubkey-hash bitcoin address for key to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen);
+size_t BRKeyAddress(int netType, BRKey *key, char *addr, size_t addrLen);
 
 // signs md with key and writes signature to sig
 // returns the number of bytes written, or sigLen needed if sig is NULL

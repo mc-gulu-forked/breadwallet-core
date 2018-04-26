@@ -104,7 +104,7 @@ static void _CKDpub(BRECPoint *K, UInt256 *c, uint32_t i)
 }
 
 // returns the master public key for the default BIP32 wallet layout - derivation path N(m/44'/1'/0')
-BRMasterPubKey BRBIP32MasterPubKey(const void *seed, size_t seedLen)
+BRMasterPubKey BRBIP32MasterPubKey(int netType, const void *seed, size_t seedLen)
 {
     BRMasterPubKey mpk = BR_MASTER_PUBKEY_NONE;
     UInt512 I;
@@ -123,11 +123,11 @@ BRMasterPubKey BRBIP32MasterPubKey(const void *seed, size_t seedLen)
         mpk.fingerPrint = BRKeyHash160(&key).u32[0];
 
         _CKDpriv(&secret, &chain, 44 | BIP32_HARD); // path m/44'/1'/0'
-#if BITCOIN_TESTNET
-        _CKDpriv(&secret, &chain, 1 | BIP32_HARD); // path m/44'/1'/0'
-#else
-        _CKDpriv(&secret, &chain, 0 | BIP32_HARD); // path m/44'/0'/0'
-#endif
+        if (netType == BTC_MainNet) {
+            _CKDpriv(&secret, &chain, 0 | BIP32_HARD); // path m/44'/0'/0'
+        } else if (netType == BTC_TestNet) {
+            _CKDpriv(&secret, &chain, 1 | BIP32_HARD); // path m/44'/1'/0'
+        }
         _CKDpriv(&secret, &chain, 0 | BIP32_HARD); // path m/44'/1'/0'
 
         mpk.chainCode = chain;
@@ -159,21 +159,25 @@ size_t BRBIP32PubKey(uint8_t *pubKey, size_t pubKeyLen, BRMasterPubKey mpk, uint
 }
 
 // sets the private key for path m/44'/1'/0'/chain/index to key
-void BRBIP32PrivKey(BRKey *key, const void *seed, size_t seedLen, uint32_t chain, uint32_t index)
+void BRBIP32PrivKey(int netType, BRKey *key, const void *seed, size_t seedLen, uint32_t chain, uint32_t index)
 {
-    BRBIP32PrivKeyPath(key, seed, seedLen, 5,
-                       44 | BIP32_HARD,
-#if BITCOIN_TESTNET
-                       1 | BIP32_HARD,
-#else
-                       0 | BIP32_HARD,
-#endif
-                       0 | BIP32_HARD,
-                       chain, index);
+    if (netType == BTC_MainNet) {
+        BRBIP32PrivKeyPath(key, seed, seedLen, 5,
+                           44 | BIP32_HARD,
+                           0 | BIP32_HARD,
+                           0 | BIP32_HARD,
+                           chain, index);
+    } else if (netType == BTC_TestNet) {
+        BRBIP32PrivKeyPath(key, seed, seedLen, 5,
+                           44 | BIP32_HARD,
+                           1 | BIP32_HARD,
+                           0 | BIP32_HARD,
+                           chain, index);
+    }
 }
 
 // sets the private key for path m/44'/1'/0'/chain/index to each element in keys
-void BRBIP32PrivKeyList(BRKey keys[], size_t keysCount, const void *seed, size_t seedLen, uint32_t chain,
+void BRBIP32PrivKeyList(int netType, BRKey keys[], size_t keysCount, const void *seed, size_t seedLen, uint32_t chain,
                         const uint32_t indexes[])
 {
     UInt512 I;
@@ -190,11 +194,11 @@ void BRBIP32PrivKeyList(BRKey keys[], size_t keysCount, const void *seed, size_t
         var_clean(&I);
 
         _CKDpriv(&secret, &chainCode, 44 | BIP32_HARD); // path m/44'
-#if BITCOIN_TESTNET
-        _CKDpriv(&secret, &chainCode, 1 | BIP32_HARD); // path m/44'/1'
-#else
-        _CKDpriv(&secret, &chainCode, 0 | BIP32_HARD); // path m/44'/1'
-#endif
+        if (netType == BTC_MainNet) {
+            _CKDpriv(&secret, &chainCode, 0 | BIP32_HARD); // path m/44'/1'
+        } else if (netType == BTC_TestNet) {
+            _CKDpriv(&secret, &chainCode, 1 | BIP32_HARD); // path m/44'/1'
+        }
         _CKDpriv(&secret, &chainCode, 0 | BIP32_HARD); // path m/44'/1'/0'
         _CKDpriv(&secret, &chainCode, chain); // path m//44'/1'/0'/chain
 

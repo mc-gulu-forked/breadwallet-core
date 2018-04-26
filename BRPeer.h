@@ -33,7 +33,7 @@
 - 目前的架构是客户端只需要签名，广播是服务器做（客户端无需与网络直接互通）
 */
 #ifndef _WIN32
-          
+
 #include "BRTransaction.h"
 #include "BRMerkleBlock.h"
 #include "BRAddress.h"
@@ -64,7 +64,7 @@ extern "C" {
 #define SERVICES_NODE_NETWORK 0x01 // services value indicating a node carries full blocks, not just headers
 #define SERVICES_NODE_BLOOM   0x04 // BIP111: https://github.com/bitcoin/bips/blob/master/bip-0111.mediawiki
 #define SERVICES_NODE_BCASH   0x20 // https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-technical-spec.md
-    
+
 #define BR_VERSION "2.1"
 #define USER_AGENT "/bread:" BR_VERSION "/"
 
@@ -110,9 +110,10 @@ typedef struct {
     uint64_t services; // bitcoin network services supported by peer
     uint64_t timestamp; // timestamp reported by peer
     uint8_t flags; // scratch variable
+    uint8_t netType; // scratch variable
 } BRPeer;
 
-#define BR_PEER_NONE ((BRPeer) { UINT128_ZERO, 0, 0, 0, 0 })
+#define BR_PEER_NONE ((BRPeer) { UINT128_ZERO, 0, 0, 0, 0, 0})
 
 // NOTE: BRPeer functions are not thread-safe
 
@@ -130,19 +131,19 @@ BRPeer *BRPeerNew(uint32_t magicNumber);
 // void notfound(void *, const UInt256[], size_t, const UInt256[], size_t) - called when "notfound" message is received
 // BRTransaction *requestedTx(void *, UInt256) - called when "getdata" message with a tx hash is received from peer
 // int networkIsReachable(void *) - must return true when networking is available, false otherwise
-// void threadCleanup(void *) - called before a thread terminates to faciliate any needed cleanup    
+// void threadCleanup(void *) - called before a thread terminates to faciliate any needed cleanup
 void BRPeerSetCallbacks(BRPeer *peer, void *info,
                         void (*connected)(void *info),
                         void (*disconnected)(void *info, int error),
                         void (*relayedPeers)(void *info, const BRPeer peers[], size_t peersCount),
-                        void (*relayedTx)(void *info, BRTransaction *tx),
+                        void (*relayedTx)(int, void *info, BRTransaction *tx),
                         void (*hasTx)(void *info, UInt256 txHash),
                         void (*rejectedTx)(void *info, UInt256 txHash, uint8_t code),
                         void (*relayedBlock)(void *info, BRMerkleBlock *block),
                         void (*notfound)(void *info, const UInt256 txHashes[], size_t txCount,
                                          const UInt256 blockHashes[], size_t blockCount),
                         void (*setFeePerKb)(void *info, uint64_t feePerKb),
-                        BRTransaction *(*requestedTx)(void *info, UInt256 txHash),
+                        BRTransaction *(*requestedTx)(int, void *info, UInt256 txHash),
                         int (*networkIsReachable)(void *info),
                         void (*threadCleanup)(void *info));
 
@@ -205,7 +206,7 @@ void BRPeerRerequestBlocks(BRPeer *peer, UInt256 fromBlock);
 inline static size_t BRPeerHash(const void *peer)
 {
     uint32_t address = ((const BRPeer *)peer)->address.u32[3], port = ((const BRPeer *)peer)->port;
- 
+
     // (((FNV_OFFSET xor address)*FNV_PRIME) xor port)*FNV_PRIME
     return (size_t)((((0x811C9dc5 ^ address)*0x01000193) ^ port)*0x01000193);
 }
