@@ -43,6 +43,7 @@
 
 #define BITCOIN_PRIVKEY      128
 #define BITCOIN_PRIVKEY_TEST 239
+#define DOGECOIN_PRIVKEY     158
 
 #if __BIG_ENDIAN__ || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) ||\
     __ARMEB__ || __THUMBEB__ || __AARCH64EB__ || __MIPSEB__
@@ -149,6 +150,8 @@ int BRPrivKeyIsValid(int netType, const char *privKey)
             r = (data[0] == BITCOIN_PRIVKEY);
         } else if (netType == BTC_TestNet) {
             r = (data[0] == BITCOIN_PRIVKEY_TEST);
+        } else if (netType == DOGE_MainNet) {
+            r = (data[0] == DOGECOIN_PRIVKEY);
         }
     }
     else if ((strLen == 30 || strLen == 22) && privKey[0] == 'S') { // mini private key format
@@ -191,6 +194,8 @@ int BRKeySetPrivKey(int netType, BRKey *key, const char *privKey)
         version = BITCOIN_PRIVKEY;
     } else if (netType == BTC_TestNet) {
         version = BITCOIN_PRIVKEY_TEST;
+    } else if (netType == DOGE_MainNet) {
+        version = DOGECOIN_PRIVKEY;
     }
     assert(key != NULL);
     assert(privKey != NULL);
@@ -253,6 +258,8 @@ size_t BRKeyPrivKey(int netType, const BRKey *key, char *privKey, size_t pkLen)
             data[0] = BITCOIN_PRIVKEY;
         } else if (netType == BTC_TestNet) {
             data[0] = BITCOIN_PRIVKEY_TEST;
+        } else if (netType == DOGE_MainNet) {
+            data[0] = DOGECOIN_PRIVKEY;
         }
         UInt256Set(&data[1], key->secret);
         if (key->compressed) data[33] = 0x01;
@@ -312,6 +319,8 @@ size_t BRKeyAddress(int netType, BRKey *key, char *addr, size_t addrLen)
         data[0] = BITCOIN_PUBKEY_ADDRESS;
     } else if (netType == BTC_TestNet) {
         data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
+    } else if (netType == DOGE_MainNet) {
+        data[0] = DOGECOIN_PUBKEY_ADDRESS;
     }
     UInt160Set(&data[1], hash);
 

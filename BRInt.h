@@ -33,6 +33,7 @@ extern "C" {
 
 #define BTC_MainNet 0
 #define BTC_TestNet 1
+#define DOGE_MainNet 2
 
 // large integers
 

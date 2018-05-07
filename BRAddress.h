@@ -40,6 +40,9 @@ extern "C" {
 #define BITCOIN_PUBKEY_ADDRESS_TEST 111
 #define BITCOIN_SCRIPT_ADDRESS_TEST 196
 
+#define DOGECOIN_PUBKEY_ADDRESS     30
+#define DOGECOIN_SCRIPT_ADDRESS     22
+
 // bitcoin script opcodes: https://en.bitcoin.it/wiki/Script#Constants
 #define OP_0           0x00
 #define OP_PUSHDATA1   0x4c

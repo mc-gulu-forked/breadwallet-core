@@ -127,6 +127,8 @@ BRMasterPubKey BRBIP32MasterPubKey(int netType, const void *seed, size_t seedLen
             _CKDpriv(&secret, &chain, 0 | BIP32_HARD); // path m/44'/0'/0'
         } else if (netType == BTC_TestNet) {
             _CKDpriv(&secret, &chain, 1 | BIP32_HARD); // path m/44'/1'/0'
+        } else if (netType == DOGE_MainNet) {
+            _CKDpriv(&secret, &chain, 3 | BIP32_HARD); // path m/44'/3'/0'
         }
         _CKDpriv(&secret, &chain, 0 | BIP32_HARD); // path m/44'/1'/0'
 
@@ -173,6 +175,12 @@ void BRBIP32PrivKey(int netType, BRKey *key, const void *seed, size_t seedLen, u
                            1 | BIP32_HARD,
                            0 | BIP32_HARD,
                            chain, index);
+    } else if (netType == DOGE_MainNet) {
+        BRBIP32PrivKeyPath(key, seed, seedLen, 5,
+                           44 | BIP32_HARD,
+                           3 | BIP32_HARD,
+                           0 | BIP32_HARD,
+                           chain, index);
     }
 }
 
@@ -198,6 +206,8 @@ void BRBIP32PrivKeyList(int netType, BRKey keys[], size_t keysCount, const void 
             _CKDpriv(&secret, &chainCode, 0 | BIP32_HARD); // path m/44'/1'
         } else if (netType == BTC_TestNet) {
             _CKDpriv(&secret, &chainCode, 1 | BIP32_HARD); // path m/44'/1'
+        } else if (netType == DOGE_MainNet) {
+            _CKDpriv(&secret, &chainCode, 3 | BIP32_HARD); // path m/44'/3'
         }
         _CKDpriv(&secret, &chainCode, 0 | BIP32_HARD); // path m/44'/1'/0'
         _CKDpriv(&secret, &chainCode, chain); // path m//44'/1'/0'/chain
