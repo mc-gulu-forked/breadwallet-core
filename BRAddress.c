@@ -253,6 +253,8 @@ size_t BRAddressFromScriptPubKey(int netType, char *addr, size_t addrLen, const 
             data[0] = BITCOIN_PUBKEY_ADDRESS;
         } else if (netType == BTC_TestNet) {
             data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
+        } else if (netType == DOGE_MainNet) {
+            data[0] = DOGECOIN_PUBKEY_ADDRESS;
         }
         memcpy(&data[1], BRScriptData(elems[2], &l), 20);
         r = BRBase58CheckEncode(addr, addrLen, data, 21);
@@ -263,6 +265,8 @@ size_t BRAddressFromScriptPubKey(int netType, char *addr, size_t addrLen, const 
             data[0] = BITCOIN_SCRIPT_ADDRESS;
         } else if (netType == BTC_TestNet) {
             data[0] = BITCOIN_SCRIPT_ADDRESS_TEST;
+        } else if (netType == DOGE_MainNet) {
+            data[0] = DOGECOIN_SCRIPT_ADDRESS;
         }
         memcpy(&data[1], BRScriptData(elems[1], &l), 20);
         r = BRBase58CheckEncode(addr, addrLen, data, 21);
@@ -273,6 +277,8 @@ size_t BRAddressFromScriptPubKey(int netType, char *addr, size_t addrLen, const 
             data[0] = BITCOIN_PUBKEY_ADDRESS;
         } else if (netType == BTC_TestNet) {
             data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
+        } else if (netType == DOGE_MainNet) {
+            data[0] = DOGECOIN_PUBKEY_ADDRESS;
         }
         d = BRScriptData(elems[0], &l);
         BRHash160(&data[1], d, l);
@@ -285,6 +291,8 @@ size_t BRAddressFromScriptPubKey(int netType, char *addr, size_t addrLen, const 
             r = BRBech32Encode(a, "bc", script);
         } else if (netType == BTC_TestNet) {
             r = BRBech32Encode(a, "tb", script);
+        } else if (netType == DOGE_MainNet) {
+            r = BRBech32Encode(a, "dg", script);
         }
         if (addr && r > addrLen) r = 0;
         if (addr) memcpy(addr, a, r);
@@ -308,6 +316,8 @@ size_t BRAddressFromScriptSig(int netType, char *addr, size_t addrLen, const uin
         data[0] = BITCOIN_PUBKEY_ADDRESS;
     } else if (netType == BTC_TestNet) {
         data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
+    } else if (netType == DOGE_MainNet) {
+        data[0] = DOGECOIN_PUBKEY_ADDRESS;
     }
     if (count >= 2 && *elems[count - 2] <= OP_PUSHDATA4 &&
         (*elems[count - 1] == 65 || *elems[count - 1] == 33)) { // pay-to-pubkey-hash scriptSig
@@ -321,6 +331,8 @@ size_t BRAddressFromScriptSig(int netType, char *addr, size_t addrLen, const uin
             data[0] = BITCOIN_SCRIPT_ADDRESS;
         } else if (netType == BTC_TestNet) {
             data[0] = BITCOIN_SCRIPT_ADDRESS_TEST;
+        } else if (netType == DOGE_MainNet) {
+            data[0] = DOGECOIN_SCRIPT_ADDRESS;
         }
         d = BRScriptData(elems[count - 1], &l);
         if (d) BRHash160(&data[1], d, l);
@@ -358,6 +370,10 @@ size_t BRAddressScriptPubKey(int netType, uint8_t *script, size_t scriptLen, con
         pubkeyAddress = BITCOIN_PUBKEY_ADDRESS_TEST;
         scriptAddress = BITCOIN_SCRIPT_ADDRESS_TEST;
         bech32Prefix = "tb";
+    } else if (netType == DOGE_MainNet) {
+        pubkeyAddress = DOGECOIN_PUBKEY_ADDRESS;
+        scriptAddress = DOGECOIN_SCRIPT_ADDRESS;
+        bech32Prefix = "dg";
     }
 
     if (BRBase58CheckDecode(data, sizeof(data), addr) == 21) {
@@ -410,6 +426,8 @@ int BRAddressIsValid(int netType, const char *addr)
             r = (data[0] == BITCOIN_PUBKEY_ADDRESS || data[0] == BITCOIN_SCRIPT_ADDRESS);
         } else if (netType == BTC_TestNet) {
             r = (data[0] == BITCOIN_PUBKEY_ADDRESS_TEST || data[0] == BITCOIN_SCRIPT_ADDRESS_TEST);
+        } else if (netType == DOGE_MainNet) {
+            r = (data[0] == DOGECOIN_PUBKEY_ADDRESS || data[0] == DOGECOIN_SCRIPT_ADDRESS);
         }
     }
     else if (BRBech32Decode(hrp, data, addr) > 2) {
@@ -417,6 +435,8 @@ int BRAddressIsValid(int netType, const char *addr)
             r = (strcmp(hrp, "bc") == 0 && (data[0] != OP_0 || data[1] == 20 || data[1] == 32));
         } else if (netType == BTC_TestNet) {
             r = (strcmp(hrp, "tb") == 0 && (data[0] != OP_0 || data[1] == 20 || data[1] == 32));
+        } else if (netType == DOGE_MainNet) {
+            r = (strcmp(hrp, "dg") == 0 && (data[0] != OP_0 || data[1] == 20 || data[1] == 32));
         }
     }
 
